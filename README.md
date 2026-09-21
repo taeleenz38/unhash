@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# unhash
 
-## Getting Started
+A public, read-only page: one transaction hash in, a narrative out.
 
-First, run the development server:
+Block explorers dump fields. Unhash tells the story — who sent what, to whom, and what changed — as a marketing-quality object a stranger can open on a phone. Not a dashboard. Not another protocol UI.
+
+This is a portfolio side project. The constraint is the product: a single public surface, no accounts, no write path.
+
+## Why
+
+Etherscan and its clones are operator tools. They are good at hex, logs, and internal calls. They are bad at a sentence.
+
+Unhash is the opposite bet. Given one hash, resolve it, then write the transaction the way you would explain it to someone sitting next to you. If that needs a second page of tables, the page failed.
+
+Do not rebuild an explorer, a mint page, a DEX, or `puri.vercel.app`.
+
+## Scope
+
+**In**
+
+- One input: a transaction hash
+- One output: a readable narrative (what happened, who was involved, what moved)
+- Public and shareable — a URL you can send
+- Read-only against public chain data
+
+**Out**
+
+- Wallets, signing, or any write path
+- Accounts, auth, or saved history
+- Token trackers, address pages, or multi-tx search
+- Protocol consoles, indexer dashboards, or “Linear but for chain”
+
+V1 is Ethereum mainnet, one hash, one page. Widen only after that page is good.
+
+## Stack
+
+- [Next.js](https://nextjs.org) 16 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS 4
+
+## Develop
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Script | What it does |
+|---|---|
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm run start` | Serve the production build |
+| `npm run lint` | ESLint |

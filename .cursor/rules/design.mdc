@@ -1,0 +1,16 @@
+---
+description: Dark theme and live-URL bar — always apply
+alwaysApply: true
+---
+
+# Design
+
+Dark-only. Vercel / Next.js language: black canvas, high contrast, quiet chrome, one accent.
+
+Use tokens from `app/globals.css` — never raw hex in components:
+
+- `bg-background` / `text-primary` / `text-secondary` / `text-accent` / `bg-accent` / `border-border`
+
+- Marketing object, not a dashboard. Generous type, real hierarchy, almost no chrome.
+- Mobile is the default viewport.
+- Verify UI in the browser before done: paste a hash, empty state, error state. Check every route that shares the state you touched. A screenshot is not verification.

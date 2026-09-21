@@ -1,0 +1,26 @@
+---
+description: Portfolio-grade TypeScript — always apply
+alwaysApply: true
+---
+
+# Code quality
+
+Recruiters will read this repo. Write the change a careful engineer would merge.
+
+- TypeScript strict. No `any`. Narrow at the boundary.
+- Simple and readable. No extra abstractions or wrappers for a single call site.
+- Follow existing structure. Change as little as possible.
+- Empty, invalid, and failed lookups are first-class UI, not `console.error`.
+- Colocate helpers next to the only caller. Do not invent a util/framework layer for one use. UI that will repeat is a component — see `composability.mdc`.
+
+```ts
+// ❌
+function getData(id: any) {
+  try { return fetchTx(id) } catch (e) {}
+}
+
+// ✅
+async function getTransaction(hash: `0x${string}`): Promise<Transaction> {
+  return fetchTransaction(hash)
+}
+```

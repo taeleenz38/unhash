@@ -1,0 +1,28 @@
+---
+description: Reusable, composable UI — no duplicated code
+alwaysApply: true
+---
+
+# Composability
+
+Frontend reviewers will look for composition, not copy-paste. One primitive, many call sites.
+
+- Do not duplicate JSX, className stacks, or parse/fetch logic. Extract.
+- Pages assemble. Shared look and behavior live in small components with typed props.
+- Compose with `children` and slots. Do not grow a prop bag of booleans (`isLarge`, `showIcon`, `variant2`).
+- A second copy is a bug. If you are about to paste, extract first.
+- Clear UI atoms (hash, amount, narrative block, empty/error) are components from the first use — do not wait to see them twice.
+
+```tsx
+// ❌ same border + type soup in three files
+<p className="border border-border text-secondary">{label}</p>
+
+// ✅ compose
+<Meta label={label} />
+<Narrative>
+  <Narrative.Lead>{lead}</Narrative.Lead>
+  <Narrative.Meta>{meta}</Narrative.Meta>
+</Narrative>
+```
+
+Keep each component one job. No kitchen-sink `FlexibleCard`.

@@ -1,0 +1,15 @@
+---
+description: unhash product constraints — always apply
+alwaysApply: true
+---
+
+# Product
+
+Portfolio side project. The live URL and the source are both the resume.
+
+- One transaction hash in, a narrative out. Public, read-only, shareable.
+- V1: Ethereum mainnet, one hash, one page.
+- No wallets, signing, accounts, saved history, or write path.
+- Not an explorer, token tracker, mint page, DEX, or protocol console.
+- If the answer needs a second page of tables, the page failed.
+- A stranger on a phone should get it in 30 seconds.
