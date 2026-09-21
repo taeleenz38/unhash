@@ -13,26 +13,26 @@ export async function resolveParty(
   address: Address,
 ): Promise<Party> {
   const listed = await listedToken(address)
-  if (listed) return { address, name: listed.symbol }
+  if (listed) return { address, name: listed.symbol, kind: "contract" }
 
   const bytecode = await client.getBytecode({ address }).catch(() => undefined)
   if (!bytecode) {
-    return { address, name: await ensName(client, address) }
+    return { address, name: await ensName(client, address), kind: "wallet" }
   }
 
   const tokenName = await onChainSymbol(client, address)
-  if (tokenName) return { address, name: tokenName }
+  if (tokenName) return { address, name: tokenName, kind: "contract" }
 
   const ens = await ensName(client, address)
-  if (ens) return { address, name: ens }
+  if (ens) return { address, name: ens, kind: "contract" }
 
   const onChain = await onChainName(client, address)
-  if (onChain) return { address, name: onChain }
+  if (onChain) return { address, name: onChain, kind: "contract" }
 
   const verified = await sourcifyName(address)
-  if (verified) return { address, name: verified }
+  if (verified) return { address, name: verified, kind: "contract" }
 
-  return { address, name: null }
+  return { address, name: null, kind: "contract" }
 }
 
 async function onChainSymbol(

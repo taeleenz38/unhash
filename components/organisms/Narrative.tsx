@@ -6,12 +6,16 @@ function Root({ children }: { children: ReactNode }) {
   return <article className="flex flex-col gap-12">{children}</article>
 }
 
-function Lead({ children }: { children: ReactNode }) {
+function Headline({ children }: { children: ReactNode }) {
   return (
-    <h1 className="text-3xl font-semibold tracking-tight break-words text-pretty text-primary sm:text-5xl sm:leading-[1.15]">
+    <h1 className="text-4xl font-semibold tracking-tight break-words text-pretty text-primary sm:text-6xl sm:leading-[1.1]">
       {children}
     </h1>
   )
+}
+
+function Lead({ children }: { children: ReactNode }) {
+  return <p className="text-xl leading-8 text-pretty text-primary sm:text-2xl">{children}</p>
 }
 
 function Body({ children }: { children: ReactNode }) {
@@ -26,4 +30,4 @@ function Meta({ children }: { children: ReactNode }) {
   )
 }
 
-export const Narrative = Object.assign(Root, { Lead, Body, Meta, Fact })
+export const Narrative = Object.assign(Root, { Headline, Lead, Body, Meta, Fact })

@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const result = await loadStory(hash)
 
   if (result.kind === "ready" || result.kind === "pending") {
-    return { title: result.story.lead }
+    return { title: `${result.story.headline} · ${result.story.lead}` }
   }
 
   return { title: shortHex(hash) }

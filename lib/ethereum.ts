@@ -3,15 +3,16 @@ import {
   createPublicClient,
   http,
   TransactionNotFoundError,
-  TransactionReceiptNotFoundError,
   type Address,
   type Hash,
   type PublicClient,
 } from "viem"
 import { mainnet } from "viem/chains"
 
+import { fiatLine } from "./fiat"
 import { parseHash } from "./hash"
 import { resolveParty } from "./names"
+import { revertReason } from "./revert"
 import { methodName } from "./selectors"
 import { writeStory, type Party, type Story, type TokenAmount, type Transfer } from "./story"
 import { decodeApproval, decodeTransfers, readToken } from "./tokens"
@@ -49,7 +50,7 @@ export const loadStory = cache(async (raw: string): Promise<LoadResult> => {
   if (!found) return { kind: "missing" }
 
   const { tx, client } = found
-  const receipt = await receiptOf(client, hash as Hash)
+  const receipt = await receiptOf(hash as Hash)
   const toAddress = tx.to ?? receipt?.contractAddress ?? null
   const rawTransfers = receipt ? decodeTransfers(receipt.logs) : []
   const approval = tx.to ? decodeApproval(tx.input) : null
@@ -65,9 +66,7 @@ export const loadStory = cache(async (raw: string): Promise<LoadResult> => {
   if (approval) interesting.push(approval.spender)
 
   const [block] = await Promise.all([
-    tx.blockNumber
-      ? client.getBlock({ blockNumber: tx.blockNumber }).catch(() => null)
-      : Promise.resolve(null),
+    tx.blockNumber ? blockOf(tx.blockNumber) : Promise.resolve(null),
     Promise.all(interesting.map((address) => names.load(address))),
   ])
 
@@ -78,11 +77,11 @@ export const loadStory = cache(async (raw: string): Promise<LoadResult> => {
     transfers.push({
       from: names.get(item.from),
       to: names.get(item.to),
-      token: amount(item.amount, meta),
+      token: amount(item.amount, meta, item.token),
     })
   }
 
-  const story = writeStory({
+  const facts = {
     hash,
     from: names.get(tx.from),
     to: toAddress ? names.get(toAddress) : null,
@@ -92,22 +91,35 @@ export const loadStory = cache(async (raw: string): Promise<LoadResult> => {
     receiptStatus: receipt?.status ?? null,
     method: methodName(tx.input),
     timestamp: block?.timestamp ?? null,
+    revert: receipt?.status === "reverted" ? await revertReason(client, tx) : null,
+    fiat: null as string | null,
     transfers,
     approval:
       approval && tx.to
         ? {
             spender: names.get(approval.spender),
-            token: amount(approval.amount, (await tokens.load(tx.to)) ?? { symbol: "tokens", decimals: 18 }),
+            token: amount(
+              approval.amount,
+              (await tokens.load(tx.to)) ?? { symbol: "tokens", decimals: 18 },
+              tx.to,
+            ),
             unlimited: approval.unlimited,
           }
         : null,
-  })
+  }
+
+  const draft = writeStory(facts)
+  const story = writeStory({ ...facts, fiat: await fiatLine(draft.quote) })
 
   return receipt ? { kind: "ready", story } : { kind: "pending", story }
 })
 
-function amount(value: bigint, meta: { symbol: string; decimals: number }): TokenAmount {
-  return { amount: value, decimals: meta.decimals, symbol: meta.symbol }
+function amount(
+  value: bigint,
+  meta: { symbol: string; decimals: number },
+  token: TokenAmount["token"],
+): TokenAmount {
+  return { amount: value, decimals: meta.decimals, symbol: meta.symbol, token }
 }
 
 function namer(client: PublicClient) {
@@ -133,7 +145,7 @@ function namer(client: PublicClient) {
   return {
     load,
     get(address: Address): Party {
-      return memo.get(address.toLowerCase()) ?? { address, name: null }
+      return memo.get(address.toLowerCase()) ?? { address, name: null, kind: "wallet" }
     },
   }
 }
@@ -184,14 +196,30 @@ async function firstTransaction(hash: Hash) {
   })
 }
 
-async function receiptOf(
-  client: PublicClient,
-  hash: Hash,
-): Promise<Awaited<ReturnType<PublicClient["getTransactionReceipt"]>> | null> {
-  try {
-    return await client.getTransactionReceipt({ hash })
-  } catch (error) {
-    if (error instanceof TransactionReceiptNotFoundError) return null
-    throw error
-  }
+async function receiptOf(hash: Hash) {
+  return firstHit((client) => client.getTransactionReceipt({ hash }))
+}
+
+async function blockOf(blockNumber: bigint) {
+  return firstHit((client) => client.getBlock({ blockNumber }))
+}
+
+function firstHit<T>(work: (client: PublicClient) => Promise<T>): Promise<T | null> {
+  return new Promise((resolve) => {
+    let left = clients.length
+    let done = false
+    const finish = (value: T | null) => {
+      if (done) return
+      done = true
+      resolve(value)
+    }
+    for (const client of clients) {
+      work(client)
+        .then((value) => finish(value))
+        .catch(() => {
+          left -= 1
+          if (left === 0) finish(null)
+        })
+    }
+  })
 }

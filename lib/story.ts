@@ -1,15 +1,20 @@
-import { formatEth, formatTokenAmount, formatWhen, shortHex } from "./formatters"
+import { formatEth, formatTokenAmount, formatWhen } from "./formatters"
 import type { TxHash } from "./hash"
+import type { Address } from "viem"
+
+export type PartyKind = "wallet" | "contract"
 
 export type Party = {
   address: `0x${string}`
   name: string | null
+  kind: PartyKind
 }
 
 export type TokenAmount = {
   amount: bigint
   decimals: number
   symbol: string
+  token: Address | "eth"
 }
 
 export type Transfer = {
@@ -24,16 +29,25 @@ export type Approval = {
   unlimited: boolean
 }
 
+export type Quote = {
+  amount: bigint
+  decimals: number
+  token: Address | "eth"
+}
+
 export type Story = {
   hash: TxHash
+  headline: string
   lead: string
   detail: string
+  aside: string | null
   from: Party
   to: Party | null
   toLabel: "to" | "contract" | "spender" | "via"
   value: string
   block: string | null
   outcome: "pending" | "succeeded" | "reverted"
+  quote: Quote | null
 }
 
 export type TxFacts = {
@@ -46,65 +60,82 @@ export type TxFacts = {
   receiptStatus: "success" | "reverted" | null
   method: string | null
   timestamp: bigint | null
+  revert: string | null
+  fiat: string | null
   transfers: Transfer[]
   approval: Approval | null
 }
 
 export function writeStory(facts: TxFacts): Story {
-  const from = label(facts.from)
   const pending = facts.receiptStatus === null
   const reverted = facts.receiptStatus === "reverted"
   const user = facts.from.address.toLowerCase()
   const outgoing = facts.transfers.filter((item) => item.from.address.toLowerCase() === user)
   const incoming = facts.transfers.filter((item) => item.to.address.toLowerCase() === user)
 
-  let action: string
+  let headline = "A transaction"
+  let lead = "sent on Ethereum"
   let to = facts.to
   let toLabel: Story["toLabel"] = facts.created ? "contract" : "to"
   let value = facts.valueWei > BigInt(0) ? formatEth(facts.valueWei) : "—"
+  let quote: Quote | null =
+    facts.valueWei > BigInt(0)
+      ? { amount: facts.valueWei, decimals: 18, token: "eth" }
+      : null
 
   if (outgoing.length >= 1 && incoming.length >= 1) {
     const sold = outgoing[0]
-    const bought = incoming[0]
-    action = `${from} swapped ${token(sold.token)} for ${token(bought.token)}`
+    const bought = incoming[incoming.length - 1]
+    headline = `${token(sold.token)} → ${token(bought.token)}`
+    lead = facts.to ? `swapped via ${describe(facts.to)}` : "swapped"
     toLabel = "via"
-    value = `${token(sold.token)} → ${token(bought.token)}`
+    value = headline
+    quote = quoteOf(sold.token)
+  } else if (facts.valueWei > BigInt(0) && incoming.length >= 1) {
+    const bought = incoming[incoming.length - 1]
+    headline = `${formatEth(facts.valueWei)} → ${token(bought.token)}`
+    lead = facts.to ? `swapped via ${describe(facts.to)}` : "swapped"
+    toLabel = "via"
+    value = headline
   } else if (outgoing.length === 1) {
     const sent = outgoing[0]
-    action = `${from} sent ${token(sent.token)} to ${label(sent.to)}`
+    headline = token(sent.token)
+    lead = `sent to ${describe(sent.to)}`
     to = sent.to
-    value = token(sent.token)
+    value = headline
+    quote = quoteOf(sent.token)
   } else if (facts.transfers.length === 1) {
     const moved = facts.transfers[0]
-    action = `${label(moved.from)} sent ${token(moved.token)} to ${label(moved.to)}`
+    headline = token(moved.token)
+    lead = `sent to ${describe(moved.to)}`
     to = moved.to
-    value = token(moved.token)
+    value = headline
+    quote = quoteOf(moved.token)
   } else if (facts.approval) {
     const { spender, token: approved, unlimited } = facts.approval
-    action = unlimited
-      ? `${from} approved ${label(spender)} to spend ${approved.symbol}`
-      : `${from} approved ${label(spender)} to spend ${token(approved)}`
+    headline = unlimited ? `Unlimited ${approved.symbol}` : token(approved)
+    lead = `approved for ${describe(spender)}`
     to = spender
     toLabel = "spender"
-    value = unlimited ? `unlimited ${approved.symbol}` : token(approved)
+    value = headline
+    quote = unlimited ? null : quoteOf(approved)
   } else if (facts.created) {
-    action = `${from} created a contract`
+    headline = "New contract"
+    lead = "created by this wallet"
   } else if (facts.valueWei > BigInt(0) && facts.to) {
-    action = `${from} sent ${formatEth(facts.valueWei)} to ${label(facts.to)}`
-    value = formatEth(facts.valueWei)
+    headline = formatEth(facts.valueWei)
+    lead = `sent to ${describe(facts.to)}`
+    value = headline
   } else if (facts.to && facts.method) {
-    action = `${from} called ${facts.method} on ${label(facts.to)}`
+    headline = facts.method
+    lead = `called ${describe(facts.to)}`
   } else if (facts.to) {
-    action = `${from} called ${label(facts.to)}`
-  } else {
-    action = `${from} sent a transaction`
+    headline = "A call"
+    lead = `called ${describe(facts.to)}`
   }
 
-  const lead = pending
-    ? `${action}, and it is still waiting to land.`
-    : reverted
-      ? `${action}, and the transaction reverted.`
-      : `${action}.`
+  if (pending) lead = `${lead}, still waiting to land`
+  if (reverted) lead = `${lead}, and it reverted`
 
   const block = facts.blockNumber?.toLocaleString("en-US") ?? null
   const when = facts.timestamp ? formatWhen(facts.timestamp) : null
@@ -118,23 +149,33 @@ export function writeStory(facts: TxFacts): Story {
         ? `It landed ${when}, in block ${block}.`
         : `It landed in block ${block}.`
 
+  const aside = [facts.fiat, facts.revert].filter(Boolean).join(" ") || null
+
   return {
     hash: facts.hash,
+    headline,
     lead,
     detail,
+    aside,
     from: facts.from,
     to,
     toLabel,
     value,
     block,
     outcome: pending ? "pending" : reverted ? "reverted" : "succeeded",
+    quote,
   }
 }
 
-function label(party: Party): string {
-  return party.name ?? shortHex(party.address)
+export function describe(party: Party): string {
+  if (party.name) return party.name
+  return party.kind === "contract" ? "a contract" : "a wallet"
 }
 
 function token(amount: TokenAmount): string {
   return formatTokenAmount(amount.amount, amount.decimals, amount.symbol)
+}
+
+function quoteOf(amount: TokenAmount): Quote {
+  return { amount: amount.amount, decimals: amount.decimals, token: amount.token }
 }

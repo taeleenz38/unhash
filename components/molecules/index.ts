@@ -1,4 +1,5 @@
 export { Account } from "./Account"
 export { Fact } from "./Fact"
+export { FeaturedStories } from "./FeaturedStories"
 export { NarrativeSkeleton } from "./NarrativeSkeleton"
 export { SiteHeader } from "./SiteHeader"

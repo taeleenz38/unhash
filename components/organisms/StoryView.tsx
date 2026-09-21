@@ -8,9 +8,13 @@ export function StoryView({ story }: { story: Story }) {
   return (
     <Narrative>
       <div className="flex flex-col gap-6">
-        <Hash>{story.hash}</Hash>
+        <div className="flex flex-col gap-3">
+          <Narrative.Headline>{story.headline}</Narrative.Headline>
+          <Hash>{story.hash}</Hash>
+        </div>
         <Narrative.Lead>{story.lead}</Narrative.Lead>
         <Narrative.Body>{story.detail}</Narrative.Body>
+        {story.aside ? <Narrative.Body>{story.aside}</Narrative.Body> : null}
       </div>
       <Narrative.Meta>
         <Narrative.Fact label="from">

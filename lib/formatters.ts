@@ -27,6 +27,14 @@ export function formatTokenAmount(
   return `${groupUnits(raw, maxFrac)} ${symbol}`
 }
 
+export function formatUsd(value: number): string {
+  if (value < 0.5) return "Less than $1."
+  if (value < 10) {
+    return `About $${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}.`
+  }
+  return `About $${Math.round(value).toLocaleString("en-US")}.`
+}
+
 export function formatWhen(unixSeconds: bigint | number): string {
   const elapsed = Math.max(0, Math.round(Date.now() / 1000 - Number(unixSeconds)))
   if (elapsed < 45) return "just now"
