@@ -26,6 +26,11 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+a,
+button:not(:disabled) {
+  cursor: pointer;
+}
+
 ::selection {
   background: var(--accent);
   color: var(--primary);

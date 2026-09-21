@@ -77,7 +77,7 @@ export function writeStory(facts: TxFacts): Story {
   let lead = "sent on Ethereum"
   let to = facts.to
   let toLabel: Story["toLabel"] = facts.created ? "contract" : "to"
-  let value = facts.valueWei > BigInt(0) ? formatEth(facts.valueWei) : "—"
+  const value = formatEth(facts.valueWei)
   let quote: Quote | null =
     facts.valueWei > BigInt(0)
       ? { amount: facts.valueWei, decimals: 18, token: "eth" }
@@ -89,27 +89,23 @@ export function writeStory(facts: TxFacts): Story {
     headline = `${token(sold.token)} → ${token(bought.token)}`
     lead = facts.to ? `swapped via ${describe(facts.to)}` : "swapped"
     toLabel = "via"
-    value = headline
     quote = quoteOf(sold.token)
   } else if (facts.valueWei > BigInt(0) && incoming.length >= 1) {
     const bought = incoming[incoming.length - 1]
     headline = `${formatEth(facts.valueWei)} → ${token(bought.token)}`
     lead = facts.to ? `swapped via ${describe(facts.to)}` : "swapped"
     toLabel = "via"
-    value = headline
   } else if (outgoing.length === 1) {
     const sent = outgoing[0]
     headline = token(sent.token)
     lead = `sent to ${describe(sent.to)}`
     to = sent.to
-    value = headline
     quote = quoteOf(sent.token)
   } else if (facts.transfers.length === 1) {
     const moved = facts.transfers[0]
     headline = token(moved.token)
     lead = `sent to ${describe(moved.to)}`
     to = moved.to
-    value = headline
     quote = quoteOf(moved.token)
   } else if (facts.approval) {
     const { spender, token: approved, unlimited } = facts.approval
@@ -117,7 +113,6 @@ export function writeStory(facts: TxFacts): Story {
     lead = `approved for ${describe(spender)}`
     to = spender
     toLabel = "spender"
-    value = headline
     quote = unlimited ? null : quoteOf(approved)
   } else if (facts.created) {
     headline = "New contract"
@@ -125,7 +120,6 @@ export function writeStory(facts: TxFacts): Story {
   } else if (facts.valueWei > BigInt(0) && facts.to) {
     headline = formatEth(facts.valueWei)
     lead = `sent to ${describe(facts.to)}`
-    value = headline
   } else if (facts.to && facts.method) {
     headline = facts.method
     lead = `called ${describe(facts.to)}`

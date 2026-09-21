@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 
-import { Note } from "@/components/atoms"
-import { HashInput } from "@/components/molecules/HashInput"
+import { Back, Note } from "@/components/atoms"
 import { StoryView } from "@/components/organisms"
 import { Shell } from "@/components/templates"
 import { loadStory } from "@/lib/ethereum"
@@ -28,13 +27,13 @@ export default async function TransactionPage({ params }: PageProps) {
 
   return (
     <Shell>
-      <div className="flex flex-col gap-16">
+      <div className="flex flex-col gap-12">
         {result.kind === "ready" || result.kind === "pending" ? (
           <StoryView story={result.story} />
         ) : (
           <Note>{copy[result.kind]}</Note>
         )}
-        <HashInput>Look up another</HashInput>
+        <Back />
       </div>
     </Shell>
   )

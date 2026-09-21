@@ -2,12 +2,18 @@ import { shortHex } from "@/lib/formatters"
 
 import { Copy } from "./Copy"
 
-export function Hash({ children }: { children: string }) {
+export function Hash({ children, href }: { children: string; href: string }) {
   return (
     <Copy value={children}>
-      <span className="font-mono text-[0.8125rem] tracking-tight text-secondary">
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={children}
+        className="font-mono text-[0.8125rem] tracking-tight text-secondary transition-colors hover:text-accent"
+      >
         {shortHex(children)}
-      </span>
+      </a>
     </Copy>
   )
 }

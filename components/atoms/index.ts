@@ -1,4 +1,5 @@
 export { Amount } from "./Amount"
+export { Back } from "./Back"
 export { Button } from "./Button"
 export { ChainMark } from "./ChainMark"
 export { Hash } from "./Hash"
