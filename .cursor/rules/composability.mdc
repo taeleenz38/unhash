@@ -5,23 +5,22 @@ alwaysApply: true
 
 # Composability
 
-Frontend reviewers will look for composition, not copy-paste. One primitive, many call sites.
+Frontend reviewers will look for composition, not copy-paste. One primitive, many call sites. File placement is in `atomic-design.mdc`.
 
 - Do not duplicate JSX, className stacks, or parse/fetch logic. Extract.
-- Pages assemble. Shared look and behavior live in small components with typed props.
+- Pages assemble organisms and molecules. They do not inline atoms.
 - Compose with `children` and slots. Do not grow a prop bag of booleans (`isLarge`, `showIcon`, `variant2`).
-- A second copy is a bug. If you are about to paste, extract first.
-- Clear UI atoms (hash, amount, narrative block, empty/error) are components from the first use — do not wait to see them twice.
+- A second copy is a bug. If you are about to paste, extract first — into the lowest atomic layer that fits.
+- Clear atoms (hash, amount, input, empty/error) exist from the first use.
 
 ```tsx
-// ❌ same border + type soup in three files
+// ❌ same type soup in three files
 <p className="border border-border text-secondary">{label}</p>
 
-// ✅ compose
-<Meta label={label} />
+// ✅ molecule + organism
 <Narrative>
   <Narrative.Lead>{lead}</Narrative.Lead>
-  <Narrative.Meta>{meta}</Narrative.Meta>
+  <Narrative.Fact label="from">{from}</Narrative.Fact>
 </Narrative>
 ```
 

@@ -1,0 +1,21 @@
+---
+description: Atomic design file structure — always apply
+alwaysApply: true
+---
+
+# Atomic design
+
+UI lives in `components/{atoms,molecules,organisms,templates}`. `app/` only assembles pages.
+
+| Layer | Rule | Examples |
+|---|---|---|
+| `atoms/` | One job. No other unhash components. | `Button`, `Hash`, `Amount`, `Note`, `TextInput` |
+| `molecules/` | A few atoms with one purpose. | `Account`, `Fact`, `HashInput`, `SiteHeader` |
+| `organisms/` | A whole section. | `Narrative`, `StoryView` |
+| `templates/` | Page chrome / layout slots. | `Shell` |
+| `app/` | Routes. No shared UI definitions. | `page.tsx`, `tx/[hash]/page.tsx` |
+
+- New UI goes in the **lowest** layer that fits. Do not drop a molecule in `app/` or an atom in `organisms/`.
+- Import from the layer barrel (`@/components/atoms`) except `"use client"` files — import those by path (`@/components/molecules/HashInput`) so server barrels stay server.
+- A layer may import only from layers below it: templates → organisms → molecules → atoms → `lib/`.
+- Compose. Do not copy an atom's className stack into a higher layer.

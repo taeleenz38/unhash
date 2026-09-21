@@ -1,4 +1,3 @@
-const HASH = /^0x[0-9a-fA-F]{64}$/
 const HEX64 = /^[0-9a-fA-F]{64}$/
 
 export const EXAMPLE_TX_HASH =
@@ -9,7 +8,8 @@ export type TxHash = `0x${string}`
 export function parseHash(value: unknown): TxHash | null {
   if (typeof value !== "string") return null
   const trimmed = value.trim()
-  if (HASH.test(trimmed)) return trimmed.toLowerCase() as TxHash
+  const embedded = trimmed.match(/0x[0-9a-fA-F]{64}/)
+  if (embedded) return embedded[0].toLowerCase() as TxHash
   if (HEX64.test(trimmed)) return `0x${trimmed.toLowerCase()}`
   return null
 }

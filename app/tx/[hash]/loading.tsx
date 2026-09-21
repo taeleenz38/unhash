@@ -1,5 +1,5 @@
-import { NarrativeSkeleton } from "@/components/NarrativeSkeleton"
-import { Shell } from "@/components/Shell"
+import { NarrativeSkeleton } from "@/components/molecules"
+import { Shell } from "@/components/templates"
 
 export default function Loading() {
   return (

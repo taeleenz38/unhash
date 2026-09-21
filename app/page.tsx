@@ -1,7 +1,7 @@
 import Link from "next/link"
 
-import { HashInput } from "@/components/HashInput"
-import { Shell } from "@/components/Shell"
+import { HashInput } from "@/components/molecules/HashInput"
+import { Shell } from "@/components/templates"
 import { EXAMPLE_TX_HASH } from "@/lib/hash"
 
 export default function Home() {

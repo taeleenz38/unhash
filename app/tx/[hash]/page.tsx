@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
-import { HashInput } from "@/components/HashInput"
-import { Note } from "@/components/Note"
-import { Shell } from "@/components/Shell"
-import { StoryView } from "@/components/StoryView"
+import { Note } from "@/components/atoms"
+import { HashInput } from "@/components/molecules/HashInput"
+import { StoryView } from "@/components/organisms"
+import { Shell } from "@/components/templates"
 import { loadStory } from "@/lib/ethereum"
 import { shorten } from "@/lib/hash"
 

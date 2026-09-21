@@ -1,8 +1,7 @@
 "use client"
 
-import { Button } from "@/components/Button"
-import { Note } from "@/components/Note"
-import { Shell } from "@/components/Shell"
+import { Button, Note } from "@/components/atoms"
+import { Shell } from "@/components/templates"
 
 export default function Error({ retry }: { retry: () => void }) {
   return (

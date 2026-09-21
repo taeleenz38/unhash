@@ -31,7 +31,8 @@ This repo is a showcase. Prefer the change a careful engineer would merge.
 - Production-ready: handle empty, invalid, and failed hash lookups as first-class UI, not `console.error`.
 - Name things for the reader. Avoid cleverness.
 - Colocate helpers next to the only caller. Do not invent a util/framework layer for one use.
-- Do not duplicate JSX, className stacks, or parse/fetch logic. Pages assemble; shared UI is small composable components (`children` / slots, not boolean prop bags). A second copy is a bug. Clear atoms (hash, amount, empty/error) are components from the first use.
+- Do not duplicate JSX, className stacks, or parse/fetch logic. Pages assemble; shared UI is small composable components (`children` / slots, not boolean prop bags). A second copy is a bug.
+- Atomic design: `components/{atoms,molecules,organisms,templates}`. New UI goes in the lowest layer that fits. Import from the layer barrel, except `"use client"` files (import by path). A layer only imports from layers below it.
 
 ```ts
 // ❌

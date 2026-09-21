@@ -1,5 +1,7 @@
 import type { ReactNode } from "react"
 
+import { Fact } from "@/components/molecules"
+
 function Root({ children }: { children: ReactNode }) {
   return <article className="flex flex-col gap-12">{children}</article>
 }
@@ -21,15 +23,6 @@ function Meta({ children }: { children: ReactNode }) {
     <dl className="grid grid-cols-2 gap-x-6 gap-y-8 border-t border-border pt-10 sm:grid-cols-4">
       {children}
     </dl>
-  )
-}
-
-function Fact({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex min-w-0 flex-col gap-2">
-      <dt className="text-xs uppercase tracking-[0.14em] text-secondary">{label}</dt>
-      <dd className="truncate text-sm">{children}</dd>
-    </div>
   )
 }
 

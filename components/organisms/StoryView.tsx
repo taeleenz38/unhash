@@ -1,7 +1,7 @@
+import { Amount, Hash } from "@/components/atoms"
+import { Account } from "@/components/molecules"
 import type { Story } from "@/lib/story"
 
-import { Account, Hash } from "./Hash"
-import { Amount } from "./Amount"
 import { Narrative } from "./Narrative"
 
 export function StoryView({ story }: { story: Story }) {
