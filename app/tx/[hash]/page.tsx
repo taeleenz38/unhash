@@ -5,7 +5,7 @@ import { HashInput } from "@/components/molecules/HashInput"
 import { StoryView } from "@/components/organisms"
 import { Shell } from "@/components/templates"
 import { loadStory } from "@/lib/ethereum"
-import { shorten } from "@/lib/hash"
+import { shortHex } from "@/lib/formatters"
 
 type PageProps = {
   params: Promise<{ hash: string }>
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: result.story.lead }
   }
 
-  return { title: shorten(hash) }
+  return { title: shortHex(hash) }
 }
 
 export default async function TransactionPage({ params }: PageProps) {

@@ -1,12 +1,13 @@
-import { shorten } from "@/lib/hash"
+import { shortHex } from "@/lib/formatters"
+
+import { Copy } from "./Copy"
 
 export function Hash({ children }: { children: string }) {
   return (
-    <span
-      className="font-mono text-[0.8125rem] tracking-tight text-secondary"
-      title={children}
-    >
-      {shorten(children)}
-    </span>
+    <Copy value={children}>
+      <span className="font-mono text-[0.8125rem] tracking-tight text-secondary">
+        {shortHex(children)}
+      </span>
+    </Copy>
   )
 }

@@ -13,8 +13,3 @@ export function parseHash(value: unknown): TxHash | null {
   if (HEX64.test(trimmed)) return `0x${trimmed.toLowerCase()}`
   return null
 }
-
-export function shorten(value: string, left = 6, right = 4): string {
-  if (value.length <= left + right + 1) return value
-  return `${value.slice(0, left)}…${value.slice(-right)}`
-}

@@ -1,4 +1,5 @@
 import { Hash } from "@/components/atoms"
+import { Copy } from "@/components/atoms/Copy"
 
 export function Account({
   address,
@@ -7,6 +8,10 @@ export function Account({
   address: string
   name: string | null
 }) {
-  if (name) return <span className="text-primary">{name}</span>
-  return <Hash>{address}</Hash>
+  if (!name) return <Hash>{address}</Hash>
+  return (
+    <Copy value={address}>
+      <span className="text-primary">{name}</span>
+    </Copy>
+  )
 }

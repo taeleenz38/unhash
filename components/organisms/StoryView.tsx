@@ -30,6 +30,14 @@ export function StoryView({ story }: { story: Story }) {
           {story.block ?? <span className="text-secondary">pending</span>}
         </Narrative.Fact>
       </Narrative.Meta>
+      <a
+        href={`https://etherscan.io/tx/${story.hash}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="w-fit text-sm text-secondary transition-colors hover:text-primary"
+      >
+        View on Etherscan
+      </a>
     </Narrative>
   )
 }

@@ -11,7 +11,10 @@ import {
 import { mainnet } from "viem/chains"
 
 import { parseHash } from "./hash"
-import { writeStory, type Party, type Story } from "./story"
+import { resolveParty } from "./names"
+import { methodName } from "./selectors"
+import { writeStory, type Party, type Story, type TokenAmount, type Transfer } from "./story"
+import { decodeApproval, decodeTransfers, readToken } from "./tokens"
 
 const timeout = 8_000
 
@@ -48,24 +51,107 @@ export const loadStory = cache(async (raw: string): Promise<LoadResult> => {
   const { tx, client } = found
   const receipt = await receiptOf(client, hash as Hash)
   const toAddress = tx.to ?? receipt?.contractAddress ?? null
-  const [fromName, toName] = await Promise.all([
-    ensName(client, tx.from),
-    toAddress ? ensName(client, toAddress) : Promise.resolve(null),
+  const rawTransfers = receipt ? decodeTransfers(receipt.logs) : []
+  const approval = tx.to ? decodeApproval(tx.input) : null
+
+  const names = namer(client)
+  const tokens = tokenReader(client)
+
+  const interesting: Address[] = [tx.from]
+  if (toAddress) interesting.push(toAddress)
+  for (const item of rawTransfers) {
+    interesting.push(item.from, item.to)
+  }
+  if (approval) interesting.push(approval.spender)
+
+  const [block] = await Promise.all([
+    tx.blockNumber
+      ? client.getBlock({ blockNumber: tx.blockNumber }).catch(() => null)
+      : Promise.resolve(null),
+    Promise.all(interesting.map((address) => names.load(address))),
   ])
+
+  const transfers: Transfer[] = []
+  for (const item of rawTransfers) {
+    const meta = await tokens.load(item.token)
+    if (!meta) continue
+    transfers.push({
+      from: names.get(item.from),
+      to: names.get(item.to),
+      token: amount(item.amount, meta),
+    })
+  }
 
   const story = writeStory({
     hash,
-    from: party(tx.from, fromName),
-    to: toAddress ? party(toAddress, toName) : null,
+    from: names.get(tx.from),
+    to: toAddress ? names.get(toAddress) : null,
     valueWei: tx.value,
-    input: tx.input,
     created: tx.to === null,
     blockNumber: tx.blockNumber,
     receiptStatus: receipt?.status ?? null,
+    method: methodName(tx.input),
+    timestamp: block?.timestamp ?? null,
+    transfers,
+    approval:
+      approval && tx.to
+        ? {
+            spender: names.get(approval.spender),
+            token: amount(approval.amount, (await tokens.load(tx.to)) ?? { symbol: "tokens", decimals: 18 }),
+            unlimited: approval.unlimited,
+          }
+        : null,
   })
 
   return receipt ? { kind: "ready", story } : { kind: "pending", story }
 })
+
+function amount(value: bigint, meta: { symbol: string; decimals: number }): TokenAmount {
+  return { amount: value, decimals: meta.decimals, symbol: meta.symbol }
+}
+
+function namer(client: PublicClient) {
+  const memo = new Map<string, Party>()
+  const pending = new Map<string, Promise<Party>>()
+
+  async function load(address: Address): Promise<Party> {
+    const id = address.toLowerCase()
+    const hit = memo.get(id)
+    if (hit) return hit
+    const inflight = pending.get(id)
+    if (inflight) return inflight
+
+    const work = resolveParty(client, address).then((party) => {
+      memo.set(id, party)
+      pending.delete(id)
+      return party
+    })
+    pending.set(id, work)
+    return work
+  }
+
+  return {
+    load,
+    get(address: Address): Party {
+      return memo.get(address.toLowerCase()) ?? { address, name: null }
+    },
+  }
+}
+
+function tokenReader(client: PublicClient) {
+  const memo = new Map<string, Promise<{ symbol: string; decimals: number } | null>>()
+
+  return {
+    load(address: Address) {
+      const id = address.toLowerCase()
+      const hit = memo.get(id)
+      if (hit) return hit
+      const work = readToken(client, address)
+      memo.set(id, work)
+      return work
+    },
+  }
+}
 
 // Public RPCs often return `result: null` for txs they do not store.
 // viem fallback only rotates on transport errors, so we race the list ourselves.
@@ -107,20 +193,5 @@ async function receiptOf(
   } catch (error) {
     if (error instanceof TransactionReceiptNotFoundError) return null
     throw error
-  }
-}
-
-function party(address: Address, name: string | null): Party {
-  return { address, name }
-}
-
-async function ensName(
-  client: PublicClient,
-  address: Address,
-): Promise<string | null> {
-  try {
-    return await client.getEnsName({ address })
-  } catch {
-    return null
   }
 }

@@ -8,7 +8,7 @@ function Root({ children }: { children: ReactNode }) {
 
 function Lead({ children }: { children: ReactNode }) {
   return (
-    <h1 className="text-3xl font-semibold tracking-tight text-pretty text-primary sm:text-5xl sm:leading-[1.15]">
+    <h1 className="text-3xl font-semibold tracking-tight break-words text-pretty text-primary sm:text-5xl sm:leading-[1.15]">
       {children}
     </h1>
   )

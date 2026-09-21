@@ -1,5 +1,6 @@
 export { Amount } from "./Amount"
 export { Button } from "./Button"
+export { ChainMark } from "./ChainMark"
 export { Hash } from "./Hash"
 export { Note } from "./Note"
 export { TextInput } from "./TextInput"
