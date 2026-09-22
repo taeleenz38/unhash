@@ -12,13 +12,13 @@ export const featuredStories = [
     tease: "a plain transfer, in English",
   },
   {
-    hash: "0xfa1166def2f9bca78b3b5533db0a5d8f403f36a7a284cd1d6c67cd5be185703f",
-    title: "ETH onto Uniswap",
-    tease: "a swap, with a name",
+    hash: "0xcff8696cbd4b69ebd79a78ee7649ce7acef6b8cdfd16e6e2857870ea3cb4a12b",
+    title: "CryptoPunk #2647",
+    tease: "an NFT, as a sentence",
   },
   {
-    hash: "0xde43fd8b71fb924a7b4236c9668b8bff6644b59c421e991a8eb84df991ba3cc1",
-    title: "An approval",
-    tease: "allowance, not a send",
+    hash: "0x95bae0dfb81e1acd8792302d25d36428d2ea7ae16345dc8ecbd7badd2198be20",
+    title: "1.027398 ETH, and it reverted",
+    tease: "sent to LiFi",
   },
 ] as const

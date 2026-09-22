@@ -15,7 +15,7 @@ import { resolveParty } from "./names"
 import { revertReason } from "./revert"
 import { methodName } from "./selectors"
 import { writeStory, type Party, type Story, type TokenAmount, type Transfer } from "./story"
-import { decodeApproval, decodeTransfers, readToken } from "./tokens"
+import { decodeApproval, decodeTransfers, readCollection, readToken } from "./tokens"
 
 const timeout = 8_000
 
@@ -56,7 +56,8 @@ export const loadStory = cache(async (raw: string): Promise<LoadResult> => {
   const approval = tx.to ? decodeApproval(tx.input) : null
 
   const names = namer(client)
-  const tokens = tokenReader(client)
+  const tokens = memoLoad((address) => readToken(client, address))
+  const collections = memoLoad((address) => readCollection(client, address))
 
   const interesting: Address[] = [tx.from]
   if (toAddress) interesting.push(toAddress)
@@ -72,12 +73,28 @@ export const loadStory = cache(async (raw: string): Promise<LoadResult> => {
 
   const transfers: Transfer[] = []
   for (const item of rawTransfers) {
-    const meta = await tokens.load(item.token)
-    if (!meta) continue
+    if (item.kind === "erc20") {
+      const meta = await tokens(item.token)
+      if (!meta) continue
+      transfers.push({
+        from: names.get(item.from),
+        to: names.get(item.to),
+        token: amount(item.amount, meta, item.token),
+      })
+      continue
+    }
+
     transfers.push({
       from: names.get(item.from),
       to: names.get(item.to),
-      token: amount(item.amount, meta, item.token),
+      token: {
+        amount: item.amount,
+        decimals: 0,
+        symbol: (await collections(item.token)) ?? "NFT",
+        token: item.token,
+        kind: item.kind,
+        tokenId: item.tokenId,
+      },
     })
   }
 
@@ -100,7 +117,7 @@ export const loadStory = cache(async (raw: string): Promise<LoadResult> => {
             spender: names.get(approval.spender),
             token: amount(
               approval.amount,
-              (await tokens.load(tx.to)) ?? { symbol: "tokens", decimals: 18 },
+              (await tokens(tx.to)) ?? { symbol: "tokens", decimals: 18 },
               tx.to,
             ),
             unlimited: approval.unlimited,
@@ -109,7 +126,7 @@ export const loadStory = cache(async (raw: string): Promise<LoadResult> => {
   }
 
   const draft = writeStory(facts)
-  const story = writeStory({ ...facts, fiat: await fiatLine(draft.quote) })
+  const story = writeStory({ ...facts, fiat: await fiatLine(draft.quote, facts.timestamp) })
 
   return receipt ? { kind: "ready", story } : { kind: "pending", story }
 })
@@ -150,18 +167,15 @@ function namer(client: PublicClient) {
   }
 }
 
-function tokenReader(client: PublicClient) {
-  const memo = new Map<string, Promise<{ symbol: string; decimals: number } | null>>()
-
-  return {
-    load(address: Address) {
-      const id = address.toLowerCase()
-      const hit = memo.get(id)
-      if (hit) return hit
-      const work = readToken(client, address)
-      memo.set(id, work)
-      return work
-    },
+function memoLoad<T>(load: (address: Address) => Promise<T>) {
+  const memo = new Map<string, Promise<T>>()
+  return (address: Address) => {
+    const id = address.toLowerCase()
+    const hit = memo.get(id)
+    if (hit) return hit
+    const work = load(address)
+    memo.set(id, work)
+    return work
   }
 }
 

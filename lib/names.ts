@@ -1,6 +1,7 @@
 import { parseAbi, type Address, type PublicClient } from "viem"
 
 import { humanizeContractName } from "./formatters"
+import { knownLabel } from "./labels"
 import type { Party } from "./story"
 import { listedToken } from "./token-list"
 
@@ -12,6 +13,9 @@ export async function resolveParty(
   client: PublicClient,
   address: Address,
 ): Promise<Party> {
+  const known = knownLabel(address)
+  if (known) return { address, name: known, kind: "contract" }
+
   const listed = await listedToken(address)
   if (listed) return { address, name: listed.symbol, kind: "contract" }
 

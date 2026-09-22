@@ -39,7 +39,7 @@ export function StoryView({ story }: { story: Story }) {
         href={explorerTxUrl(story.hash)}
         target="_blank"
         rel="noopener noreferrer"
-        className="w-fit text-sm text-secondary transition-colors hover:text-primary"
+        className="w-fit text-sm text-secondary transition-colors hover:text-accent"
       >
         View on Etherscan
       </a>

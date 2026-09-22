@@ -39,7 +39,7 @@ export function HashInput({ children }: { children?: ReactNode }) {
         />
         <Button
           type="submit"
-          disabled={pending}
+          disabled={!hash || pending}
           className={`shrink-0 ${
             hash ? "text-primary hover:text-primary" : "text-secondary hover:text-secondary"
           }`}
